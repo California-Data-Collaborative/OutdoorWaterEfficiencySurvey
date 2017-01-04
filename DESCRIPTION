@@ -1,0 +1,14 @@
+Package: CAFriendlyPlantSurvey
+Title: Generate a Household Survey Sample in the SAWPA Region
+Description: This documents the process to generate a sample of parcels in the region of the
+  Santa Ana Watershed Project Authority. These tax parcels will then be filtered down to
+  single-family households for use in a household survey to estimate landscape opinions,
+  environmental attitudes, and penetration rates of different landscaping types.
+Type: Package
+Version: 0.0.1
+Date: 2017-01-04
+Author: Christopher Tull
+Maintainer: Christopher Tull, <chris@argolabs.org>
+URL:
+BugReports:
+LazyData: TRUE
