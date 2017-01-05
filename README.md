@@ -21,4 +21,8 @@ This project is a collaboration between [CivicSpark](http://civicspark.lgc.org/)
 
 ## Survey Sample Generation
 
-* [Santa Ana Watershed boundary polygon](http://www.sawpa.net/Downloads/gis_layers.zip) reprojected to [EPSG 3310](http://spatialreference.org/ref/epsg/nad83-california-albers/).
+* [Santa Ana Watershed boundary polygon](http://www.sawpa.net/Downloads/gis_layers.zip)
+* [California census block group polygons](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2016&layergroup=Block+Groups)
+* [California parcel boundaries](http://egis3.lacounty.gov/dataportal/2015/09/11/california-statewide-parcel-boundaries/)
+
+All shapefiles have been reprojected to [EPSG 3310](http://spatialreference.org/ref/epsg/nad83-california-albers/).
