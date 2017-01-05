@@ -17,12 +17,26 @@ This project is a collaboration between [CivicSpark](http://civicspark.lgc.org/)
 * Christopher Tull
 
 
-# Data Sources
+## Methodology 
 
-## Survey Sample Generation
+### Survey Sample Generation
+
+Code to generate the survey sample is located in the [notebooks/create_sample](notebooks/create_sample.html) file.
+
+## Data Sources 
 
 * [Santa Ana Watershed boundary polygon](http://www.sawpa.net/Downloads/gis_layers.zip)
 * [California census block group polygons](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2016&layergroup=Block+Groups)
 * [California parcel boundaries](http://egis3.lacounty.gov/dataportal/2015/09/11/california-statewide-parcel-boundaries/)
 
-All shapefiles have been reprojected to [EPSG 3310](http://spatialreference.org/ref/epsg/nad83-california-albers/).
+All shapefiles have been reprojected to [EPSG 3310](http://spatialreference.org/ref/epsg/nad83-california-albers/) using a process like the following in PostGIS:
+
+```sql
+--After loading shapefile, set the current column projection
+SELECT UpdateGeometrySRID('census_blockgroup_polygons_2016', 'geom', 4269);
+
+ALTER TABLE census_blockgroup_polygons_2016 ADD COLUMN geom_3310 geometry(MultiPolygon,3310);
+
+UPDATE census_blockgroup_polygons_2016 SET geom_3310 = ST_Transform(geom, 3310)
+WHERE ST_SRID(geom) = 4269;
+```
