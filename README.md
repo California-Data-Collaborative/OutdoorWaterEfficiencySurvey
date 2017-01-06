@@ -21,7 +21,7 @@ This project is a collaboration between [CivicSpark](http://civicspark.lgc.org/)
 
 ### Survey Sample Generation
 
-Code to generate the survey sample is located in the [notebooks/create_sample](notebooks/create_sample.md) file.
+Code to generate the survey sample is located in the [notebooks/create_sample](http://htmlpreview.github.io/?https://raw.githubusercontent.com/California-Data-Collaborative/OutdoorWaterEfficiencySurvey/master/notebooks/create_sample.nb.html) file.
 
 ## Data Sources 
 

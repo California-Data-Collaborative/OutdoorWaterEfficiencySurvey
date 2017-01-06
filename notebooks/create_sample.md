@@ -2,6 +2,22 @@ Outdoor Water Efficiency Survey:
 Household Sample Creation
 ================
 
+Sample Size Calculation
+-----------------------
+
+Using the sample size estimation formula provided in a [UN handbook on household survey samples](http://unstats.un.org/unsd/demographic/sources/surveys/Handbook23June05.pdf) we have the following for the sample size *n*<sub>*h*</sub>
+
+$n\_h = (z^2)(r)(1-r)(f)(k)/(p)(\\hat{n})(e^2)$
+
+Where
+
+*n*<sub>*h*</sub> is the parameter to be calculated and is the sample size in terms of number of households to be selected;
+
+*z* is the statistic that defines the level of confidence desired;
+
+Sample Generation
+-----------------
+
 Generation of a sample of households for the Outdoor Water Efficiency Survey. The sample is generated using data stored primarily in the CaDC SCUBA data warehouse.
 
 First connect to the database.

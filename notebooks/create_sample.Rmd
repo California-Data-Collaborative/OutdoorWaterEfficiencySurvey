@@ -3,9 +3,67 @@ title: |
   | Outdoor Water Efficiency Survey:
   | Household Sample Creation
 output: 
+  html_document: default
   github_document: default
 ---
 
+## Sample Size Calculation
+
+Using the sample size estimation formula provided in a [UN handbook on household survey samples](http://unstats.un.org/unsd/demographic/sources/surveys/Handbook23June05.pdf) we have the following for the sample size $n_h$
+
+$$n_h = (z^2)(r)(1-r)(f)(k)/(p)(\hat{n})(e^2)$$
+
+Where
+
+* $n_h$ is the parameter to be calculated and is the sample size in terms of number of households to be selected;
+
+* $z$ is the statistic that defines the level of confidence desired; 
+
+* $r$ is an estimate of a key indicator to be measured by the survey;
+
+* $f$ is the sample design effect, deff, assumed to be 2.0 (default value); 
+
+* $k$ is a multiplier to account for the anticipated rate of non-response; 
+
+* $p$ is the proportion of the total population accounted for by the target population and upon which the parameter, r, is based; 
+
+* $\hat{n}$ is the average household size (number of persons per household);
+
+* $e$ is the margin of error to be attained.
+
+$r$ is the most important variable for our purposes and at the present time it is uncertain what we should choose for our survey. For example we could choose $r=0.1$ if we believe we are trying to accurately estimate an attribute held by 10% of the population. For now we generate a range of possible values.
+
+```{r}
+r <- seq(0.1, 0.5, by=0.05)
+r
+```
+
+
+Applying defualts recommended in the handbook for the other values gives:
+
+```{r}
+z <- 1.96
+f <- 2
+k <- 1.1
+p <- 1
+nhat <- 1
+e <- 0.1*r
+```
+
+Our sample size estimates are then
+
+```{r}
+nh <- ((z^2)*r*(1-r)*f*k)/(p*nhat*(e^2))
+as.data.frame(list("r"=r, "sample_size"=nh))
+```
+
+### Sample Size
+
+For now, lets assume that we want to estimate the number of households in SAWPA with California-friendly landscaping, and let's further assume that between 30-35% of households in the region have this landscaping.
+
+In that case, our sample size will need to be between `r ceiling(nh[5])` and `r ceiling(nh[6])`.
+
+## Sample Generation
 
 Generation of a sample of households for the Outdoor Water Efficiency Survey. The sample is generated using data stored primarily in the CaDC SCUBA data warehouse.
 
