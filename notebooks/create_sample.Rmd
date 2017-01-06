@@ -42,12 +42,12 @@ r
 Applying defualts recommended in the handbook for the other values gives:
 
 ```{r}
-z <- 1.96
-f <- 2
-k <- 1.1
-p <- 1
-nhat <- 1
-e <- 0.1*r
+z <- 1.96  # 95% confidence level
+f <- 2     # assume large design effect from few clusters
+k <- 1.1   # 10% nonresponse rate
+p <- 1     # target population is households, so proportion is 1
+nhat <- 1  # 1 household per household
+e <- 0.1*r # margin of error desired is 10% of r
 ```
 
 Our sample size estimates are then

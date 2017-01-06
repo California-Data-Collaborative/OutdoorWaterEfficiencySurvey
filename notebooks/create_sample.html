@@ -137,14 +137,16 @@ Household Sample Creation</p></h1>
 <li><p><span class="math inline">\(e\)</span> is the margin of error to be attained.</p></li>
 </ul>
 <p><span class="math inline">\(r\)</span> is the most important variable for our purposes and at the present time it is uncertain what we should choose for our survey. For example we could choose <span class="math inline">\(r=0.1\)</span> if we believe we are trying to accurately estimate an attribute held by 10% of the population. For now we generate a range of possible values.</p>
-<pre class="r"><code>r &lt;- seq(0.1, 0.5, by=0.05)</code></pre>
+<pre class="r"><code>r &lt;- seq(0.1, 0.5, by=0.05)
+r</code></pre>
+<pre><code>## [1] 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50</code></pre>
 <p>Applying defualts recommended in the handbook for the other values gives:</p>
-<pre class="r"><code>z &lt;- 1.96
-f &lt;- 2
-k &lt;- 1.1
-p &lt;- 1
-nhat &lt;- 1
-e &lt;- 0.1*r</code></pre>
+<pre class="r"><code>z &lt;- 1.96  # 95% confidence level
+f &lt;- 2     # assume large design effect from few clusters
+k &lt;- 1.1   # 10% nonresponse rate
+p &lt;- 1     # target population is households, so proportion is 1
+nhat &lt;- 1  # 1 household per household
+e &lt;- 0.1*r # margin of error desired is 10% of r</code></pre>
 <p>Our sample size estimates are then</p>
 <pre class="r"><code>nh &lt;- ((z^2)*r*(1-r)*f*k)/(p*nhat*(e^2))
 as.data.frame(list(&quot;r&quot;=r, &quot;sample_size&quot;=nh))</code></pre>
