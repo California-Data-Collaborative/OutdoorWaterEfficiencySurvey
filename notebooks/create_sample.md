@@ -1,19 +1,99 @@
-Outdoor Water Efficiency Survey:
 Household Sample Creation
+Outdoor Water Efficiency Survey:
 ================
 
 Sample Size Calculation
 -----------------------
 
-Using the sample size estimation formula provided in a [UN handbook on household survey samples](http://unstats.un.org/unsd/demographic/sources/surveys/Handbook23June05.pdf) we have the following for the sample size *n*<sub>*h*</sub>
+The desired sample size *n*<sub>*h*</sub> is calculated as:
 
-$n\_h = (z^2)(r)(1-r)(f)(k)/(p)(\\hat{n})(e^2)$
+*n*<sub>*h*</sub> = (*z*<sup>2</sup>)(*r*)(1 − *r*)(*f*)(*k*)/(*e*<sup>2</sup>)
 
 Where
 
-*n*<sub>*h*</sub> is the parameter to be calculated and is the sample size in terms of number of households to be selected;
+-   *n*<sub>*h*</sub> is the parameter to be calculated and is the sample size in terms of number of households to be selected;
 
-*z* is the statistic that defines the level of confidence desired;
+-   *z* is the statistic that defines the level of confidence desired;
+
+-   *r* is an estimate of a key indicator to be measured by the survey;
+
+-   *f* is the sample design effect, deff, assumed to be 2.0 (default value);
+
+-   *k* is a multiplier to account for the anticipated rate of non-response;
+
+-   *e* is the margin of error to be attained.
+
+*r* is the most important variable for our purposes and at the present time it is uncertain what we should choose for our survey. For example we could choose *r* = 0.1 if we believe we are trying to accurately estimate an attribute held by 10% of the population. For now we generate a range of possible values.
+
+``` r
+r <- seq(0.1, 0.9, by=0.1)
+r
+```
+
+    ## [1] 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
+
+Applying defualts recommended in the handbook for the other values gives:
+
+``` r
+z <- 1.96  # 95% confidence level
+f <- 1.5   # assumed design effect from few clusters
+k <- 1.25   # 25% nonresponse rate
+e <- 0.025 # margin of error desired
+```
+
+Our sample size estimates are then
+
+``` r
+nh <- round(((z^2)*r*(1-r)*f*k)/((e^2)))
+knitr::kable(as.data.frame(list("r"=r, "sample_size"=nh)))
+```
+
+|    r|  sample\_size|
+|----:|-------------:|
+|  0.1|          1037|
+|  0.2|          1844|
+|  0.3|          2420|
+|  0.4|          2766|
+|  0.5|          2881|
+|  0.6|          2766|
+|  0.7|          2420|
+|  0.8|          1844|
+|  0.9|          1037|
+
+### Sample Size
+
+For now, we make the conservative estimate of *r* = 0.5, resulting in a desired sample size of 2881 households visited (although we expect that 1/4 will not respond, so we actually only need completed surveys from 2161 households.)
+
+### Number of Neighborhoods to Visit
+
+Ideally, the 2881 households would be selected randomly from the population, but that would result in unwieldy logistics for those conducting the survey and an infeasible amount of travel time. Instead we will make use of a two-stage sampling design where neighborhoods (defined by census block groups) are first sampled with a probability proportional to their size, and then a fixed number of households are selected from each neighborhood.
+
+Determining the correct number of neighborhoods requires making tradeoffs between cost and the amount of variance induced by our sample design. More neighborhoods means more reliable results (lower variance) but also more travel time on the ground. On the other hand selecting fewer neighborhoods with more households in each neighborhood reduces travel time, but increases the variance, thereby reducing the reliability of our ultimate analysis.
+
+To estimate the desired number of neighorhoods to select, we make some assumptions below.
+
+``` r
+ss <- ss # Sample size
+num_of_fellows <- 11
+hhs_per_hour <- 4 # one of these will be a nonresponse. Assumes
+                  # 3*8 mins per survey + 
+                  # 4*5 mins to walk to next houses +
+                  # 1*3 mins for nonresponse + 11 mins for loading and logistics
+
+volunteers_per_fellow <- 4 #num volunteers managed by each fellow
+hours_per_session <- 4 #duration of a volunteer session in hours
+
+neighborhoods_per_session <- 3 #number of neighborhoods visited each session
+travel_time_per_neighborhood <- 0.25 #time in hours to get from one neighborhood to next
+travel_time_per_session <- (neighborhoods_per_session-1)*travel_time_per_neighborhood
+
+hhs_per_fellow_per_session <- hhs_per_hour*volunteers_per_fellow*(hours_per_session-travel_time_per_session)
+hhs_per_neighborhood <- hhs_per_fellow_per_session/neighborhoods_per_session
+```
+
+The assumptions above result in 56 households visited per fellow per 4-hour session, assuming that each fellow is coordinating 4 volunteers and not performing survey's themselves. This results leads to an estimate of 18.6666667 households to sample from each neighborhood, which we will round to 20
+
+If this is done, it means that 144 neighborhoods will be sampled in total, with 20 households in each, resulting in 2880 total households visited.
 
 Sample Generation
 -----------------

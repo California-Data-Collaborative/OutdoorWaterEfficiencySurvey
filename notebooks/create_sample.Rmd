@@ -1,17 +1,17 @@
 ---
 title: |
-  | Outdoor Water Efficiency Survey:
   | Household Sample Creation
-output: 
-  html_document: default
+  | Outdoor Water Efficiency Survey:
+output:
   github_document: default
+  html_document: default
 ---
 
 ## Sample Size Calculation
 
-Using the sample size estimation formula provided in a [UN handbook on household survey samples](http://unstats.un.org/unsd/demographic/sources/surveys/Handbook23June05.pdf) we have the following for the sample size $n_h$
+The desired sample size $n_h$ is calculated as: 
 
-$$n_h = (z^2)(r)(1-r)(f)(k)/(p)(\hat{n})(e^2)$$
+$$n_h = (z^2)(r)(1-r)(f)(k)/(e^2)$$
 
 Where
 
@@ -25,16 +25,12 @@ Where
 
 * $k$ is a multiplier to account for the anticipated rate of non-response; 
 
-* $p$ is the proportion of the total population accounted for by the target population and upon which the parameter, r, is based; 
-
-* $\hat{n}$ is the average household size (number of persons per household);
-
 * $e$ is the margin of error to be attained.
 
 $r$ is the most important variable for our purposes and at the present time it is uncertain what we should choose for our survey. For example we could choose $r=0.1$ if we believe we are trying to accurately estimate an attribute held by 10% of the population. For now we generate a range of possible values.
 
 ```{r}
-r <- seq(0.1, 0.5, by=0.05)
+r <- seq(0.1, 0.9, by=0.1)
 r
 ```
 
@@ -43,25 +39,64 @@ Applying defualts recommended in the handbook for the other values gives:
 
 ```{r}
 z <- 1.96  # 95% confidence level
-f <- 2     # assume large design effect from few clusters
-k <- 1.1   # 10% nonresponse rate
-p <- 1     # target population is households, so proportion is 1
-nhat <- 1  # 1 household per household
-e <- 0.1*r # margin of error desired is 10% of r
+f <- 1.5   # assumed design effect from few clusters
+k <- 1.25   # 25% nonresponse rate
+e <- 0.025 # margin of error desired
 ```
 
 Our sample size estimates are then
 
 ```{r}
-nh <- ((z^2)*r*(1-r)*f*k)/(p*nhat*(e^2))
-as.data.frame(list("r"=r, "sample_size"=nh))
+nh <- round(((z^2)*r*(1-r)*f*k)/((e^2)))
+knitr::kable(as.data.frame(list("r"=r, "sample_size"=nh)))
 ```
 
 ### Sample Size
 
-For now, lets assume that we want to estimate the number of households in SAWPA with California-friendly landscaping, and let's further assume that between 30-35% of households in the region have this landscaping.
+```{r, echo=FALSE}
+ss <- nh[5]
 
-In that case, our sample size will need to be between `r ceiling(nh[5])` and `r ceiling(nh[6])`.
+mround <- function(x,base){ 
+        base*round(x/base) 
+} 
+
+```
+
+
+For now, we make the conservative estimate of $r = 0.5$, resulting in a desired sample size of `r ss` households visited (although we expect that 1/4 will not respond, so we actually only need completed surveys from `r round((2-k)*ss)` households.)
+
+### Number of Neighborhoods to Visit
+
+Ideally, the `r ss` households would be selected randomly from the population, but that would result in unwieldy logistics for those conducting the survey and an infeasible amount of travel time. Instead we will make use of a two-stage sampling design where neighborhoods (defined by census block groups) are first sampled with a probability proportional to their size, and then a fixed number of households are selected from each neighborhood. 
+
+Determining the correct number of neighborhoods requires making tradeoffs between cost and the amount of variance induced by our sample design. More neighborhoods means more reliable results (lower variance) but also more travel time on the ground. On the other hand selecting fewer neighborhoods with more households in each neighborhood reduces travel time, but increases the variance, thereby reducing the reliability of our ultimate analysis.
+
+To estimate the desired number of neighorhoods to select, we make some assumptions below.
+```{r}
+ss <- ss # Sample size
+
+num_of_fellows <- 11
+
+hhs_per_hour <- 4 # one of these will be a nonresponse. Assumes
+                  # 3*8 mins per survey + 
+                  # 4*5 mins to walk to next houses +
+                  # 1*3 mins for nonresponse + 11 mins for loading and logistics
+
+volunteers_per_fellow <- 4 #num volunteers managed by each fellow
+hours_per_session <- 4 #duration of a volunteer session in hours
+
+neighborhoods_per_session <-  #number of neighborhoods visited each session
+travel_time_per_neighborhood <- 0.25 #time in hours to get from one neighborhood to next
+travel_time_per_session <- (neighborhoods_per_session-1)*travel_time_per_neighborhood
+
+hhs_per_fellow_per_session <- hhs_per_hour*volunteers_per_fellow*(hours_per_session-travel_time_per_session)
+hhs_per_neighborhood <- hhs_per_fellow_per_session/neighborhoods_per_session
+
+```
+
+The assumptions above result in `r hhs_per_fellow_per_session` households visited per fellow per `r hours_per_session`-hour session, assuming that each fellow is coordinating `r volunteers_per_fellow` volunteers and not performing survey's themselves. This results leads to an estimate of `r hhs_per_neighborhood` households to sample from each neighborhood, which we will round to `r mround(hhs_per_neighborhood, 5)`
+
+If this is done, it means that `r round(ss/mround(hhs_per_neighborhood, 5))` neighborhoods will be sampled in total, with `r mround(hhs_per_neighborhood, 5)` households in each, resulting in `r round(ss/mround(hhs_per_neighborhood, 5))*mround(hhs_per_neighborhood, 5)` total households visited.
 
 ## Sample Generation
 
@@ -74,6 +109,145 @@ library(RPostgreSQL)
 source("../db_config.R")
 db <- dbConnect(RPostgreSQL::PostgreSQL(), user=db_user, password=db_password, dbname=db_name, host=db_host, port=db_port)
 # knitr::opts_chunk$set(connection = "db")
+```
+
+```sql
+<!-- CREATE TABLE sandbox.parcels_in_survey_region AS -->
+
+<!-- WITH parcels_with_bg AS -->
+<!-- ( SELECT a.*, b.geoid -->
+<!--   FROM assessor_polygons a, -->
+<!--         census_blockgroup_polygons_2016 b -->
+<!--   WHERE ST_Within(a.centroid, b.geom_3310) -->
+<!--   AND a.shape_area < 10000 -->
+<!-- ), -->
+
+<!-- parcels_with_bg_region AS -->
+<!-- ( SELECT p.*, s.name -->
+<!--   FROM parcels_with_bg p, -->
+<!--         sandbox.survey_regions s -->
+<!--   WHERE ST_Within(p.centroid, s.geom) -->
+<!-- ) -->
+
+<!-- SELECT assessor_polygon_id AS ap_id, utility_id, geoid,  -->
+<!--        name AS region_name -->
+<!-- FROM parcels_with_bg_region -->
+
+
+CREATE TABLE sandbox.parcels_in_survey_region AS
+
+WITH bg_with_region AS
+( SELECT b.*, s.name
+  FROM census_blockgroup_polygons_2016 b,
+        sandbox.sample_regions s
+  WHERE ST_Within(ST_Centroid(b.geom_3310), s.geom)
+),
+
+bg_with_region_and_zip AS
+( SELECT br.*, z.zcta5ce10
+  FROM bg_with_region br,
+        public.zip_code_tab_areas_in_ca z
+  WHERE ST_Within(ST_Centroid(br.geom_3310), z.geom)
+),
+
+parcels_with_bg AS
+( SELECT a.*, bg2.geoid, bg2.zcta5ce10, bg2.name
+  FROM assessor_polygons a,
+        bg_with_region_and_zip bg2
+  WHERE ST_Within(a.centroid, bg2.geom_3310)
+  AND a.shape_area < 10000
+)
+
+
+SELECT assessor_polygon_id AS ap_id, utility_id, geoid, zcta5ce10 as "zip",
+       "name" AS region_name
+FROM parcels_with_bg
+
+```
+```{r}
+parcels <- read.csv("../../../../../Dropbox/CA_Data_Collaborative/Geospatial_Stuff/survey_region_parcels.csv")
+```
+
+
+```{r}
+r <- c("EMWD", "IEUA", "OCWD", "SBV", "WMWD", "Alameda County", "Clovis", "San Diego", "SLO")
+w <- c(1, 1, 1, 1, 1, 3, 1, 1, 1)
+df_fellow_weights <- as.data.frame(list("region_name"=r, "fellow_weights"=w))
+
+library(dplyr)
+# region_sizes <- parcels %>% group_by(region_name) %>% summarise(region_size = length(ap_id)) %>%
+#   left_join(df_fellow_weights, by="region_name") %>%
+#   mutate(region_weights = (fellow_weights/sum(fellow_weights))*(region_size/sum(region_size))) %>%
+#   mutate(region_probs = region_weights/sum(region_weights)) %>%
+#   select(region_name, region_weights, region_probs)
+
+zip_sizes <- parcels %>% group_by(region_name, zip) %>% 
+  summarise(num_parcels_in_zip = n_distinct(ap_id),
+            num_bgs_in_zip = n_distinct(geoid)) %>%
+  mutate(zip_probs = num_parcels_in_zip/sum(num_parcels_in_zip)) 
+
+bg_sizes <- parcels %>% group_by(zip, geoid) %>% summarise(num_parcels_in_bg = length(ap_id)) %>%
+  mutate(bg_probs = num_parcels_in_bg/sum(num_parcels_in_bg)) %>% 
+  left_join(zip_sizes, by="zip") 
+# %>%
+  # mutate(bg_probs = bg_weights*region_weights)
+
+# set.seed(4321) # sample 1
+
+neighborhoods_per_fellow <- 7
+set.seed(988)
+sampled_zips <- c() 
+
+region <- filter(bg_sizes, region_name=="EMWD")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="IEUA")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="OCWD")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="SBV")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="WMWD")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="Alameda County")
+sampled_zips <- c(sampled_zips, sample(region$zip, 3, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="San Diego")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="SLO")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+region <- filter(bg_sizes, region_name=="Clovis")
+sampled_zips <- c(sampled_zips, sample(region$zip, 1, prob = region$zip_probs) )
+
+
+sampled_bgs <- bg_sizes %>% filter(zip %in% sampled_zips) %>% group_by(zip) %>%
+  sample_n(neighborhoods_per_fellow, weight=bg_probs) 
+
+```
+
+```{r}
+parcel_sample <- parcels %>% filter(geoid %in% sampled_bgs$geoid) %>% group_by(geoid) %>%
+  sample_n(40)
+
+parcel_sample$sample_hh_id <- 1:nrow(parcel_sample)
+write.csv(parcel_sample, file="../data/parcel_sample_zipstrat_7each.csv", row.names=FALSE, na="")
+```
+
+```sql
+create table sandbox.parcel_sample_from_notebook_7each as 
+(select * from sandbox.parcel_sample_alameda_sawpa_sd_14each limit 0)
+
+create table sandbox.parcel_sample_polygons_7each as
+(select a.*, p.geoid, p.region_name 
+from assessor_polygons a,
+		sandbox.parcel_sample_from_notebook_7each p
+where a.assessor_polygon_id = p.assessor_parcel_id)
 ```
 
 We want the ability to sample our tables, and the easiest wat to do that in Postgres is using the `TABLESAMPLE` command. `TABLESAMPLE` can only be used with actual tables and materialized views, so we will have to forgo our favorite [common table expressions](https://www.postgresql.org/docs/9.1/static/queries-with.html) (aka the `with` clause). Instead we create a new materialized view, or refresh it in this case as it has already been created.
