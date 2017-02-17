@@ -169,7 +169,7 @@ parcels <- read.csv("../../../../../Dropbox/CA_Data_Collaborative/Geospatial_Stu
 ```
 
 
-```{r}
+```{r, message=FALSE}
 r <- c("EMWD", "IEUA", "OCWD", "SBV", "WMWD", "Alameda County", "Clovis", "San Diego", "SLO")
 w <- c(1, 1, 1, 1, 1, 3, 1, 1, 1)
 df_fellow_weights <- as.data.frame(list("region_name"=r, "fellow_weights"=w))
@@ -236,17 +236,22 @@ parcel_sample <- parcels %>% filter(geoid %in% sampled_bgs$geoid) %>% group_by(g
   sample_n(40)
 
 parcel_sample$sample_hh_id <- 1:nrow(parcel_sample)
+parcel_sample <- parcel_sample[c("ap_id", "utility_id", "geoid", "region_name", "sample_hh_id", "zip")]
 write.csv(parcel_sample, file="../data/parcel_sample_zipstrat_7each.csv", row.names=FALSE, na="")
 ```
 
 ```sql
-create table sandbox.parcel_sample_from_notebook_7each as 
-(select * from sandbox.parcel_sample_alameda_sawpa_sd_14each limit 0)
+--create empty table
+create table sandbox.parcel_sample_from_notebook_zipstrat_7each as 
+(select * from sandbox.parcel_sample_from_notebook_7each limit 0)
 
-create table sandbox.parcel_sample_polygons_7each as
+--then add zip column
+
+-- then select the polygons
+create table sandbox.parcel_sample_polygons_zipstrat_7each as
 (select a.*, p.geoid, p.region_name 
 from assessor_polygons a,
-		sandbox.parcel_sample_from_notebook_7each p
+		sandbox.parcel_sample_from_notebook_zipstrat_7each p
 where a.assessor_polygon_id = p.assessor_parcel_id)
 ```
 
