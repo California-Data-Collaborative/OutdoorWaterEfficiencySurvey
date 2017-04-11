@@ -2,7 +2,7 @@
 
 A household survey in Southern California to estimate current outdoor water use habits, environmental attitudes, and penetration rates of different landscaping types.
 
-This project is a collaboration between [CivicSpark](http://civicspark.lgc.org/), the [CaDC](http://californiadatacollaborative.com/), and participating utilities including the [Santa Ana Watershed Project Authority](http://www.sawpa.org/) (SAWPA), the [Inland Empire Utilities Agency](https://www.ieua.org/) (IEUA) and the [Eastern Municipal Water District](http://www.emwd.org/) (EMWD).
+This project is a [CaDC](http://californiadatacollaborative.com/) collaborative project between [CivicSpark](http://civicspark.lgc.org/), and participating utilities including the [Santa Ana Watershed Project Authority](http://www.sawpa.org/) (SAWPA), the [Inland Empire Utilities Agency](https://www.ieua.org/) (IEUA) and the [Eastern Municipal Water District](http://www.emwd.org/) (EMWD).
 
 #### CivicSpark Fellows
 * [Paul Caporaso](http://civicspark.lgc.org/our-fellows/entry/2645/)
@@ -12,7 +12,7 @@ This project is a collaboration between [CivicSpark](http://civicspark.lgc.org/)
 * [Abbey Pizel](http://civicspark.lgc.org/our-fellows/entry/2689/)
 * [Amanda Schallert](http://civicspark.lgc.org/our-fellows/entry/2693/)
 
-#### CaDC Staff
+#### CaDC Staff ( [Team ARGO](argolabs.org) )
 * Patrick Atwater
 * Christopher Tull
 
